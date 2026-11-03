@@ -1,0 +1,5 @@
+target/
+campsite-data.bin
+campsite-data.bin.tmp
+.idea/
+.vscode/
