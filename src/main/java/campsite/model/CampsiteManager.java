@@ -16,6 +16,50 @@ public final class CampsiteManager implements java.io.Serializable {
     private final CustomList<Guest> guests = new CustomList<>();
     private final CustomList<Booking> bookings = new CustomList<>();
     private int nextBookingId = 1;
+// sample data
+    public static CampsiteManager createSampleData() {
+        CampsiteManager sample = new CampsiteManager();
+
+        Campsite lakeCamp = sample.addCampsite(101, "Green Lake Camping",
+                "Lake Road, Westmeath", 4, "+353 44 555 0101",
+                parseFacilities("Pool, Wi-Fi, Restaurant, Laundry"));
+        sample.addArea(lakeCamp.id(), "Lakeside", "Family pitches beside the lake");
+        sample.addPlot(lakeCamp.id(), "Lakeside", "LAKE-01", PlotType.BUNGALOW,
+                true, 2, 4, 45,
+                parseFacilities("Kitchen, Wi-Fi, Lake view"), 125, "");
+        sample.addPlot(lakeCamp.id(), "Lakeside", "LAKE-02", PlotType.BUNGALOW,
+                true, 2, 4, 42,
+                parseFacilities("Kitchen, Wi-Fi, Lake view"), 105, "");
+        sample.addPlot(lakeCamp.id(), "Lakeside", "PITCH-01", PlotType.EMPTY_PITCH,
+                true, 0, 0, 90,
+                parseFacilities("Water hookup, Lake view"), 35, "");
+
+        Campsite forestCamp = sample.addCampsite(202, "Pine Ridge Resort",
+                "Forest Road, Wicklow", 5, "+353 1 555 0202",
+                parseFacilities("Pool, Wi-Fi, Restaurant, Sauna"));
+        sample.addArea(forestCamp.id(), "Forest View", "Quiet cabins among the trees");
+        sample.addPlot(forestCamp.id(), "Forest View", "PINE-01", PlotType.BUNGALOW,
+                true, 2, 4, 48,
+                parseFacilities("Kitchen, Wi-Fi, Forest view"), 165, "");
+        sample.addPlot(forestCamp.id(), "Forest View", "PINE-02", PlotType.BUNGALOW,
+                true, 2, 4, 46,
+                parseFacilities("Kitchen, Wi-Fi, Forest view"), 149, "");
+        sample.addPlot(forestCamp.id(), "Forest View", "CABIN-01",
+                PlotType.STATIC_MOBILE_HOME, true, 2, 4, 55,
+                parseFacilities("Kitchen, Wi-Fi, Hot tub"), 185, "");
+
+        sample.addGuest(5001, "Alex Murphy", LocalDate.of(1990, 5, 14),
+                "10 Main Street, Dublin", "+353 87 555 5001",
+                "alex@example.com", "Sample guest for trying Smart Find");
+        sample.addGuest(5002, "Jamie Kelly", LocalDate.of(1988, 9, 22),
+                "5 River Road, Galway", "+353 86 555 5002",
+                "jamie@example.com", "Sample guest");
+        return sample;
+    }
+
+
+
+
 
     public CustomList<Campsite> campsites() {
         return campsites;
@@ -29,8 +73,7 @@ public final class CampsiteManager implements java.io.Serializable {
         return bookings;
     }
 
-    public Campsite addCampsite(int id, String name, String address, int stars, String contact,
-            CustomList<String> facilities) {
+    public Campsite addCampsite(int id, String name, String address, int stars, String contact,CustomList<String> facilities) {
         if (id <= 0) {
             throw new IllegalArgumentException("Campsite ID must be a positive number.");
         }
@@ -48,7 +91,7 @@ public final class CampsiteManager implements java.io.Serializable {
         }
         Campsite campsite = new Campsite(id, name.trim(), address.trim(),
                 stars, contact.trim(), facilities);
-        campsites.add(campsite);
+        campsites.add(campsite); // Add the new campsite to the list of campsites！！！！ custom
         return campsite;
     }
 
@@ -100,6 +143,7 @@ public final class CampsiteManager implements java.io.Serializable {
         if (dateOfBirth == null || dateOfBirth.isAfter(LocalDate.now())) {
             throw new IllegalArgumentException("Guest date of birth must not be in the future.");
         }
+        
         Guest guest = new Guest(id, name.trim(), dateOfBirth,
                 clean(address), clean(telephone), clean(email), clean(notes));
         guests.add(guest);
@@ -128,6 +172,11 @@ public final class CampsiteManager implements java.io.Serializable {
         return createBooking(campsite, area, plot, guest, request);
     }
 
+
+
+
+    
+    // Smart Find
     public PlotMatch findSmartPlot(BookingRequest request, int minimumStars,
             CustomList<String> requiredCampsiteFacilities,
             CustomList<String> requiredPlotFacilities) {
@@ -178,6 +227,22 @@ public final class CampsiteManager implements java.io.Serializable {
         return createBooking(campsite, area, plot, findGuest(guestId), completeRequest);
     }
 
+    private boolean isBetterSmartChoice(Campsite campsite, Plot plot, PlotMatch current) {
+        if (current == null || campsite.stars() > current.campsite().stars()) {
+            return true;
+        }
+        return campsite.stars() == current.campsite().stars()
+                && plot.costPerNight() < current.plot().costPerNight();
+    }
+
+
+
+
+
+
+
+
+/// cancel booking
     public boolean cancelBooking(int bookingId) {
         Booking booking = findBooking(bookingId);
         if (booking == null || !booking.isPending()) {
@@ -191,6 +256,8 @@ public final class CampsiteManager implements java.io.Serializable {
         return true;
     }
 
+
+/// remove plot/pitch
     public int removePlot(int campsiteId, String areaId, String plotId) {
         Campsite campsite = requireCampsite(campsiteId);
         CampingArea area = requireArea(campsiteId, areaId);
@@ -223,6 +290,11 @@ public final class CampsiteManager implements java.io.Serializable {
         return cancelledCount;
     }
 
+
+
+
+
+
     public Guest findGuest(int guestId) {
         for (Guest guest : guests) {
             if (guest.id() == guestId) {
@@ -250,6 +322,9 @@ public final class CampsiteManager implements java.io.Serializable {
         return null;
     }
 
+
+
+
     public CustomList<Booking> guestBookings(int guestId) {
         CustomList<Booking> result = new CustomList<>();
         for (Booking booking : bookings) {
@@ -260,6 +335,12 @@ public final class CampsiteManager implements java.io.Serializable {
         return result;
     }
 
+
+
+
+
+
+/// view pending bookings
     public String pendingBookingsForCampsite(int campsiteId) {
         Campsite campsite = requireCampsite(campsiteId);
         StringBuilder result = new StringBuilder();
@@ -285,6 +366,7 @@ public final class CampsiteManager implements java.io.Serializable {
         return result.toString();
     }
 
+    // view guest record
     public String guestRecord(int guestId) {
         Guest guest = findGuest(guestId);
         if (guest == null) {
@@ -316,13 +398,19 @@ public final class CampsiteManager implements java.io.Serializable {
         return result.toString();
     }
 
+
+
+
+
+
+/// reset facilities
     public void reset() {
         campsites.clear();
         guests.clear();
         bookings.clear();
         nextBookingId = 1;
     }
-
+/// save and load
     public void save(Path file) throws IOException {
         Path absoluteFile = file.toAbsolutePath();
         Path parent = absoluteFile.getParent();
@@ -353,6 +441,11 @@ public final class CampsiteManager implements java.io.Serializable {
         }
     }
 
+
+
+
+
+
     public static CustomList<String> parseFacilities(String text) {
         CustomList<String> facilities = new CustomList<>();
         if (text == null || text.isBlank()) {
@@ -373,6 +466,9 @@ public final class CampsiteManager implements java.io.Serializable {
         }
         return facilities;
     }
+
+
+
 
     private Booking createBooking(Campsite campsite, CampingArea area, Plot plot,
             Guest guest, BookingRequest request) {
@@ -396,6 +492,8 @@ public final class CampsiteManager implements java.io.Serializable {
         }
         return null;
     }
+
+
 
     private boolean matches(Plot plot, BookingRequest request) {
         if (request.preferredType() != null && plot.type() != request.preferredType()) {
@@ -426,6 +524,8 @@ public final class CampsiteManager implements java.io.Serializable {
         return false;
     }
 
+
+    
     private PlotMatch findReplacement(Campsite campsite, Plot removedPlot,
             BookingRequest request) {
         for (CampingArea area : campsite.areas()) {
@@ -439,14 +539,6 @@ public final class CampsiteManager implements java.io.Serializable {
             }
         }
         return null;
-    }
-
-    private boolean isBetterSmartChoice(Campsite campsite, Plot plot, PlotMatch current) {
-        if (current == null || campsite.stars() > current.campsite().stars()) {
-            return true;
-        }
-        return campsite.stars() == current.campsite().stars()
-                && plot.costPerNight() < current.plot().costPerNight();
     }
 
     private boolean hasAllFacilities(CustomList<String> available,

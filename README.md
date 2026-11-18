@@ -26,6 +26,10 @@ mvn test
 The application saves and loads `campsite-data.bin` in its working directory.
 The **Save data** and **Load data** buttons control persistence; saved data is
 also loaded automatically when the application starts and the file exists.
+Use **Load sample data** on the system tab to replace the current data with
+example campsites, plots and guests for trying Smart Find. The sample data is
+saved automatically; the application asks for confirmation before replacing
+existing data.
 Reset clears both the in-memory system and that saved file.
 The Windows launcher uses a relative classpath so the application also runs
 when the project folder contains non-English characters.

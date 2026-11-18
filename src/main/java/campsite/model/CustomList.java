@@ -85,6 +85,8 @@ public final class CustomList<T> implements Iterable<T>, Serializable {
         };
     }
 
+    
+/// remove node from the list, given the previous node and the current node to be removed
     private void removeNode(Node<T> previous, Node<T> current) {
         if (previous == null) {
             first = current.next;

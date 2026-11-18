@@ -89,6 +89,8 @@ public final class CampsiteApp extends Application {
         }
     }
 
+
+    
     private Tab createManagementTab() {
         VBox actions = new VBox(8,
                 actionButton("Add campsite", this::addCampsite),
@@ -137,6 +139,7 @@ public final class CampsiteApp extends Application {
         VBox actions = new VBox(8,
                 actionButton("Save data", this::saveData),
                 actionButton("Load data", this::loadData),
+                actionButton("Load sample data", this::loadSampleData),
                 actionButton("Reset all data", this::resetData),
                 new Label("Data file: " + DATA_FILE.toAbsolutePath()));
         actions.setPadding(new Insets(12));
@@ -158,6 +161,10 @@ public final class CampsiteApp extends Application {
         return button;
     }
 
+
+
+
+    /// add campsite, area, plot, guest, booking
     private void addCampsite() {
         InputForm form = new InputForm("Add campsite");
         form.add("Campsite ID (positive number)");
@@ -252,6 +259,11 @@ public final class CampsiteApp extends Application {
         showStatus("Booking " + booking.id() + " assigned to plot " + booking.plotId());
     }
 
+
+
+
+
+// cancel booking, view bookings, view guest, smart find
     private void cancelBooking() {
         InputForm form = new InputForm("Cancel booking");
         form.add("Booking ID");
@@ -368,6 +380,41 @@ public final class CampsiteApp extends Application {
         } catch (IOException exception) {
             showError("Could not save campsite data: " + exception.getMessage());
         }
+    }
+
+
+
+    private void loadSampleData() {
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION,
+                "This replaces the current campsite data and saves the sample data to disk. Continue?",
+                ButtonType.YES, ButtonType.NO);
+        confirmation.setHeaderText("Load sample data?");
+        if (confirmation.showAndWait().orElse(ButtonType.NO) != ButtonType.YES) {
+            return;
+        }
+
+        CampsiteManager sample = CampsiteManager.createSampleData();
+        try {
+            sample.save(DATA_FILE);
+        } catch (IOException exception) {
+            showError("Could not save sample campsite data: " + exception.getMessage());
+            return;
+        }
+        manager = sample;
+        refreshCampsites();
+        LocalDate start = LocalDate.now().plusDays(30);
+        output.setText("Sample data is ready. Try Smart Find with:\n"
+                + "Guest ID: 5001\n"
+                + "Start date: " + start + "\n"
+                + "End date: " + start.plusDays(5) + "\n"
+                + "Preferred type: BUNGALOW\n"
+                + "Guests: 4; Power: ANY\n"
+                + "Minimum size: 40; Bedrooms: 2; Beds: 4\n"
+                + "Maximum cost per night: 200; Minimum stars: 4\n"
+                + "Campsite facilities: Pool\n"
+                + "Plot facilities: Kitchen, Wi-Fi\n\n"
+                + "The suggested result should be Pine Ridge Resort, plot PINE-02.");
+        showStatus("Sample data loaded and saved to " + DATA_FILE);
     }
 
     private void loadData() {

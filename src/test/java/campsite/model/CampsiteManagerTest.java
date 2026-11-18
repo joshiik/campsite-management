@@ -198,6 +198,24 @@ class CampsiteManagerTest {
     }
 
     @Test
+    void sampleDataProvidesAnAvailableSmartFindMatch() {
+        CampsiteManager sample = CampsiteManager.createSampleData();
+        LocalDate sampleStart = LocalDate.now().plusDays(30);
+        BookingRequest request = new BookingRequest(sampleStart, sampleStart.plusDays(5),
+                PlotType.BUNGALOW, 4, PowerPreference.ANY, 40, 2, 4, 200,
+                CampsiteManager.parseFacilities("Pool"),
+                CampsiteManager.parseFacilities("Kitchen, Wi-Fi"));
+
+        PlotMatch match = sample.findSmartPlot(request, 4,
+                request.requiredCampsiteFacilities(), request.requiredPlotFacilities());
+
+        assertNotNull(match);
+        assertEquals(202, match.campsite().id());
+        assertEquals("PINE-02", match.plot().identifier());
+        assertNotNull(sample.findGuest(5001));
+    }
+
+    @Test
     void guestRecordShowsPendingBookingAndGuestContactDetails() {
         addPlot("P1", PlotType.EMPTY_PITCH, false, 0, 0, 20, 30);
         Booking booking = manager.addBooking(campsite.id(), "Lakeside", guest.id(),
